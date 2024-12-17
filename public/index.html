@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Hakai Clear</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Hakai Clear</h1>
+        <form id="clearChannelForm">
+            <label for="token">Token do Discord:</label>
+            <input type="password" id="token" name="token" required>
+
+            <label for="channelId">ID do Canal:</label>
+            <input type="text" id="channelId" name="channelId" required>
+
+            <button type="submit">Limpar Canal</button>
+        </form>
+        <form id="clearAllForm">
+            <input type="hidden" id="tokenAll" name="token" required>
+            <button type="submit" class="danger">Limpar Todas as Mensagens</button>
+        </form>
+        <a href="credits.html" class="credits-link">Créditos</a>
+        <div id="messageDisplay" class="message-display"></div>
+    </div>
+    <script>
+        function displayMessage(message, isError = false) {
+            const messageDisplay = document.getElementById('messageDisplay');
+            messageDisplay.textContent = message;
+            messageDisplay.className = isError ? 'message-display error' : 'message-display success';
+        }
+
+        document.getElementById('token').addEventListener('input', function() {
+            document.getElementById('tokenAll').value = this.value;
+        });
+
+        document.getElementById('clearChannelForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const token = document.getElementById('token').value;
+            const channelId = document.getElementById('channelId').value;
+            
+            try {
+                const response = await fetch('/clear-channel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token, channelId }),
+                });
+                const data = await response.json();
+                displayMessage(data.message, !response.ok);
+            } catch (error) {
+                displayMessage('Ocorreu um erro ao processar sua solicitação.', true);
+            }
+        });
+
+        document.getElementById('clearAllForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!confirm('Tem certeza que deseja apagar TODAS as suas mensagens? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+            
+            const token = document.getElementById('tokenAll').value;
+            
+            try {
+                const response = await fetch('/clear-all', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token }),
+                });
+                const data = await response.json();
+                displayMessage(data.message, !response.ok);
+            } catch (error) {
+                displayMessage('Ocorreu um erro ao processar sua solicitação.', true);
+            }
+        });
+    </script>
+</body>
+</html>
+
